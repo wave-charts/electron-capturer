@@ -1,5 +1,7 @@
 examples
 src
+node_modules
 tsconfig.json
 yarn.lock
 .gitignore
+.get-platform.js

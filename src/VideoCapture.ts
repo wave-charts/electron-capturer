@@ -76,7 +76,7 @@ export class VideoCapture {
     });
 
     this._queue.on("sortedframes", (frames) => {
-      console.log(`received ${frames.length} frames from queue`);
+      debug(`received ${frames.length} frames from queue`);
       frames.forEach((frame) => this._writePreviousFrame(frame));
     });
   }
