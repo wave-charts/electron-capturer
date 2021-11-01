@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ElectronCapturer Demo</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline';"
+    />
+
+    <style>
+      label {
+        display: block;
+      }
+      label > span {
+        color: #777;
+        font-size: 0.7rem;
+      }
+      label > span::after {
+        content: ":";
+      }
+    </style>
+  </head>
+  <body>
+    <header style="margin-bottom: 10px">
+      <label for="width">
+        <span>width(800px)</span>
+        <input type="number" data-key="width" placeholder="width(800px)" />
+      </label>
+      <label for="height">
+        <span>height(600px)</span>
+        <input type="number" data-key="height" placeholder="height(600px)" />
+      </label>
+      <label for="duration">
+        <span>duration(17)</span>
+        <input type="number" data-key="duration" placeholder="duration(17)" />
+      </label>
+      <label for="fps">
+        <span>fps(25)</span>
+        <input type="number" data-key="fps" placeholder="fps(25)" />
+      </label>
+      <label for="url">
+        <span>url</span>
+        <input
+          type="text"
+          data-key="url"
+          placeholder="url(https://github.com)"
+        />
+      </label>
+
+      <button id="capture">Capture</button>
+    </header>
+    <video
+      controls
+      style="
+        width: 800px;
+        height: 600px;
+        max-width: calc(100vw - 50px);
+        max-height: calc(100vh - 160px);
+      "
+    ></video>
+
+    <script>
+      let wait = false;
+      const dftConfig = {
+        width: 800,
+        height: 600,
+        fps: 25,
+        duration: 17,
+        quality: 100,
+      };
+      const config = {};
+
+      document.querySelectorAll("input[data-key]").forEach((el) =>
+        el.addEventListener("input", (e) => {
+          const key = el.getAttribute("data-key");
+          const value = parseInt(e.target.value);
+          config[key] = value;
+          if (["width", "height"].indexOf(key) > -1)
+            document.querySelector("video").style[key] = `${value}px`;
+        })
+      );
+      const ipcRenderer = require("electron").ipcRenderer;
+      document.querySelector("#capture").onclick = async (e) => {
+        if (wait) return;
+        wait = true;
+        e.target.innerText = "Wait...";
+        const buffer = await ipcRenderer.invoke("capture", {
+          ...dftConfig,
+          ...config,
+        });
+        const video = document.querySelector("video");
+        const blob = new Blob([buffer]);
+        const dataUrl = URL.createObjectURL(blob);
+        video.src = dataUrl;
+        video.play();
+
+        e.target.innerText = "Capture";
+        wait = false;
+      };
+    </script>
+  </body>
+</html>
