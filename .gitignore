@@ -106,3 +106,5 @@ dist
 
 # examples
 examples/output
+
+.DS_Store
