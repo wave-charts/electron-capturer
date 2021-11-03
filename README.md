@@ -1,4 +1,4 @@
-# electron-capturer
+# electron-video-recorder
 Capture Electron's window and export as video
 
 
@@ -14,36 +14,50 @@ Capture Electron's window and export as video
 # Install
 
 ```shell
-npm i electron-capturer
+npm i electron-video-recorder
 ```
 
 # Use
 
+With Electron's [Offscreen] API, you can export videos in the background:
+
 ```js
 const fs = require("fs");
-const { capture } = require("electron-capturer");
+const { capture } = require("electron-video-recorder");
 const { app, BrowserWindow } = require("electron");
 
-app.whenReady().then(() => {
-  app.on("activate", () => {
-    const win = new BrowserWindow({
-      width: 800,
-      height: 800,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-      },
-    });
-
-    capture(win, { savePath: 'capture.mp4', fps: 25 }).then(handle => {
-      handle.stop().then(() => {
-        const buffer = fs.readFileSync('capture.mp4');
-        win.close();
-        win.destroy();
-      });
-    })
-  });
+const win = new BrowserWindow({
+  webPreferences: { offscreen: true },
+  show: false,
 });
+
+capture(win, { savePath: 'capture.mp4', fps: 25 }).then(handle => {
+  handle.stop().then(() => {
+    const buffer = fs.readFileSync('capture.mp4');
+    win.close();
+    win.destroy();
+  });
+})
+```
+
+Or with async func:
+
+```js
+const fs = require("fs");
+const { capture } = require("electron-video-recorder");
+const { app, BrowserWindow } = require("electron");
+
+const win = new BrowserWindow({
+  webPreferences: { offscreen: true },
+  show: false,
+});
+
+const handle = await capture(win, { savePath: 'capture.mp4', fps: 25 });
+// Set up your custom stop event
+await new Promise((r) => setTimeout(r, 10000));
+const buffer = fs.readFileSync('capture.mp4');
+win.close();
+win.destroy();
 ```
 
 # API
@@ -80,10 +94,15 @@ There's an Electron example in project, Clone the project and run:
 yarn dev
 ```
 
+# Reference
+
+> This library is referenced from [playwright-video] 
+
 
 [BrowserWindow]: https://www.electronjs.org/zh/docs/latest/api/browser-window 'BrowserWindow'
 [Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object 'Object'
 [String]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#string_type 'String'
 [Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#number_type 'Number'
 [Promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise 'Promise'
-
+[playwright-video]: https://github.com/qawolf/playwright-video 'PlaywrightVideo'
+[Offscreen]: https://www.electronjs.org/zh/docs/latest/tutorial/offscreen-rendering 'Offscreen'

@@ -1,7 +1,7 @@
 {
-  "name": "electron-capturer",
-  "version": "1.0.1",
-  "description": "Capture Electron's window and export as video",
+  "name": "electron-video-recorder",
+  "version": "0.0.4",
+  "description": "Record Electron's window and export as video",
   "main": "./dist/index.js",
   "repository": "git@github.com:wave-charts/electron-capturer.git",
   "author": "wave-charts",
@@ -9,20 +9,26 @@
   "private": false,
   "keywords": [
     "electron",
-    "capture"
+    "capture",
+    "record",
+    "video",
+    "record-video",
+    "record-screen",
+    "ffmpeg"
   ],
   "scripts": {
     "start:electron": "electron ./examples/main.js",
-    "dev": "rimraf dist && tsc && yarn start:electron"
+    "dev": "rimraf dist && tsc && yarn start:electron",
+    "build": "rimraf dist && tsc"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "electron": "13"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "debug": "^4.3.2",
-    "electron": "13",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^10.0.0",
     "tslib": "^2.3.1"
