@@ -27,8 +27,6 @@ function createOffscreenWindow(cfg = {}) {
   );
   console.log({ options });
   const win = new BrowserWindow(options);
-  const dftUrl = "https://github.com";
-  win.loadURL(cfg.url || dftUrl);
   return win;
 }
 
@@ -45,6 +43,9 @@ app.whenReady().then(() => {
       width: cfg.width,
       height: cfg.height,
     });
+    const dftUrl = "https://github.com";
+    console.log(cfg.url);
+    offscreenWindow.loadURL(cfg.url || dftUrl);
     return await capture(offscreenWindow, cfg);
   });
 });

@@ -9,6 +9,8 @@ import Debug from "debug";
 
 const debug = new Debug(`${pkgName}:VideoWritter`);
 
+export type ExportFormat = "gif" | "mp4";
+
 export class VideoWritter extends EventEmitter {
   public static async create(options?: CaptureOptions): Promise<VideoWritter> {
     const { savePath } = options;
@@ -21,42 +23,94 @@ export class VideoWritter extends EventEmitter {
   private _receivedFrame = false;
   private _stopped = false;
   private _stream: PassThrough = new PassThrough();
+  private _format: ExportFormat = "mp4";
+  private _niceness: number = 0;
 
   protected constructor(options?: CaptureOptions) {
     super();
 
     ensureFfmpegPath();
     const opt = Object.assign({}, options);
-    const { fps, savePath } = opt;
+    const { fps, savePath, format } = opt;
     if (fps) this._fps = fps;
+    if (format) this._format = format;
+    if (opt.niceness)
+      this._niceness = Math.min(20, Math.max(-20, parseInt(opt.niceness + "")));
     this._writeVideo(savePath);
   }
 
+  private _ensureFilename(savePath: string) {
+    const arr = savePath.split(".").reverse();
+    const ext = arr[0];
+    const format = this._format;
+    const checks = ["mp4", "gif"];
+    for (let check of checks) {
+      if (format === check) {
+        if (ext !== check) {
+          arr[0] = check;
+          savePath = arr.reverse().join(".");
+        }
+        break;
+      }
+    }
+    return savePath;
+  }
+
   private _writeVideo(savePath: string): void {
+    savePath = this._ensureFilename(savePath);
     debug(`write video to ${savePath}`);
     this._endedPromise = new Promise((resolve, reject) => {
-      ffmpeg({ source: this._stream, priority: 20 })
-        .videoCodec("libx264")
-        .inputFormat("image2pipe")
-        .inputFPS(this._fps)
-        .outputOptions("-preset ultrafast")
-        .outputOptions("-pix_fmt yuv420p")
-        .on("error", (e) => {
-          this.emit("ffmpegerror", e.message);
-          // do not reject as a result of not having frames
-          if (
-            !this._receivedFrame &&
-            e.message.includes("pipe:0: End of file")
-          ) {
+      if (this._format === "mp4") {
+        ffmpeg({ source: this._stream, niceness: this._niceness })
+          .videoCodec("libx264")
+          .inputFormat("image2pipe")
+          .inputFPS(this._fps)
+          .fps(this._fps)
+          .format("mp4")
+          .outputOptions("-preset ultrafast")
+          .outputOptions("-pix_fmt yuv420p")
+          .on("error", (e) => {
+            this.emit("ffmpegerror", e.message);
+            // do not reject as a result of not having frames
+            if (
+              !this._receivedFrame &&
+              e.message.includes("pipe:0: End of file")
+            ) {
+              resolve();
+              return;
+            }
+            reject(`error capturing video: ${e.message}`);
+          })
+          .on("end", () => {
             resolve();
-            return;
-          }
-          reject(`error capturing video: ${e.message}`);
-        })
-        .on("end", () => {
-          resolve();
-        })
-        .save(savePath);
+          })
+          .save(savePath);
+      } else if (this._format === "gif") {
+        ffmpeg({ source: this._stream, niceness: this._niceness })
+          .videoCodec("gif")
+          .inputFPS(this._fps)
+          .fps(this._fps)
+          .size("50%")
+          .format("gif")
+          .on("error", (e) => {
+            this.emit("ffmpegerror", e.message);
+            // do not reject as a result of not having frames
+            if (
+              !this._receivedFrame &&
+              e.message.includes("pipe:0: End of file")
+            ) {
+              resolve();
+              return;
+            }
+            reject(`error capturing GIF: ${e.message}`);
+          })
+          .on("end", () => {
+            resolve();
+          })
+          .save(savePath);
+      } else {
+        reject("unexcpted format");
+      }
     });
   }
 

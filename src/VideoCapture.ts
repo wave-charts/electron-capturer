@@ -1,4 +1,4 @@
-import { VideoWritter } from "./VideoWritter";
+import { ExportFormat, VideoWritter } from "./VideoWritter";
 import { BrowserWindow } from "electron";
 import { FrameCollector, ScreencastFrame } from "./FrameCollector";
 import { SortedFrameQueue } from "./SortedFrameQueue";
@@ -10,6 +10,8 @@ const debug = new Debug(`${pkgName}:VideoCapture`);
 export interface CaptureOptions {
   savePath?: string;
   fps?: number;
+  format?: ExportFormat;
+  niceness?: number;
   queueSize?: number;
 }
 

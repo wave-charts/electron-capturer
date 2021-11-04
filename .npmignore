@@ -5,3 +5,4 @@ tsconfig.json
 yarn.lock
 .gitignore
 .get-platform.js
+.*.js

@@ -22,9 +22,9 @@
     "build": "rimraf dist && tsc"
   },
   "devDependencies": {
+    "electron": "^15.3.0",
     "rimraf": "^3.0.2",
-    "typescript": "^4.4.4",
-    "electron": "13"
+    "typescript": "^4.4.4"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

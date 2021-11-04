@@ -67,6 +67,8 @@ win.destroy();
 - `options`<[Object]>
   - `savePath`<[String]>: path to save the exported video;
   - `fps`<[Number]>: The frames per secord, defaluts to `25`;
+  - `format`< `mp4` | `gif` >: output format, default to `mp4`;
+  - `niceness`<[Number]>: config of [fluent-ffmpeg](https://www.npmjs.com/package/fluent-ffmpeg#creating-an-ffmpeg-command);
 - returns: <[Promise]<[VideoCapture](#classvideocapture)>>
 
 #### class:VideoCapture
@@ -80,7 +82,7 @@ Manually stop capturing.
 This method will automatically be called when `BrowserWindow` is `closed` or `destroyed`
 
 ```js
-const capture = await capture(win, "capture.mp4");
+const capture = await capture(win, { savePath: "capture.mp4" });
 await new Promise(r => setTimeout(r, 5000));
 await capture.stop();
 ```

@@ -8,8 +8,9 @@ let fps = 25;
 let duration = 4;
 let width = 800;
 let height = 600;
+let niceness = 0;
+let format = "mp4";
 const outputDir = path.join(__dirname, "output");
-const output = path.join(outputDir, "captured.mp4");
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
 module.exports.capture = (win = new BrowserWindow(), cfg) => {
@@ -17,14 +18,19 @@ module.exports.capture = (win = new BrowserWindow(), cfg) => {
   if (cfg.height) height = cfg.height;
   if (cfg.fps) fps = cfg.fps;
   if (cfg.duration) duration = cfg.duration;
+  if (cfg.format) format = cfg.format;
+  if (cfg.niceness) niceness = cfg.niceness;
 
   return new Promise((resolve) => {
     const ctx = win.webContents;
     ctx.setFrameRate(fps);
 
+    const output = path.join(outputDir, "captured." + format);
     capture(win, {
       savePath: output,
       fps,
+      format,
+      niceness,
     }).then((captureHandle) => {
       setTimeout(() => {
         captureHandle.stop().then(() => {

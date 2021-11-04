@@ -39,6 +39,10 @@
         <span>fps(25)</span>
         <input type="number" data-key="fps" placeholder="fps(25)" />
       </label>
+      <label for="niceness">
+        <span>niceness(0)</span>
+        <input type="number" data-key="niceness" placeholder="niceness(0)" />
+      </label>
       <label for="url">
         <span>url</span>
         <input
@@ -46,6 +50,14 @@
           data-key="url"
           placeholder="url(https://github.com)"
         />
+      </label>
+
+      <label for="format">
+        <span>format</span>
+        <select data-key="format" placeholder="format(mp4)">
+          <option value="mp4">mp4</option>
+          <option value="gif">gif</option>
+        </select>
       </label>
 
       <button id="capture">Capture</button>
@@ -60,6 +72,15 @@
       "
     ></video>
 
+    <img
+      style="
+        width: 800px;
+        height: 600px;
+        max-width: calc(100vw - 50px);
+        max-height: calc(100vh - 160px);
+      "
+    />
+
     <script>
       let wait = false;
       const dftConfig = {
@@ -68,18 +89,36 @@
         fps: 25,
         duration: 17,
         quality: 100,
+        format: "mp4",
+        niceness: 0,
       };
       const config = {};
 
-      document.querySelectorAll("input[data-key]").forEach((el) =>
-        el.addEventListener("input", (e) => {
-          const key = el.getAttribute("data-key");
-          const value = parseInt(e.target.value);
-          config[key] = value;
-          if (["width", "height"].indexOf(key) > -1)
-            document.querySelector("video").style[key] = `${value}px`;
-        })
-      );
+      document
+        .querySelectorAll("input[data-key], select[data-key]")
+        .forEach((el) =>
+          el.addEventListener("input", (e) => {
+            if (!e) return;
+            const key = el.getAttribute("data-key");
+            let value = e.target.value;
+            if (value.match(/^[0-9]+$/)) value = parseInt(e.target.value);
+            console.log(e.target.value);
+            config[key] = value;
+            if (["width", "height"].indexOf(key) > -1) {
+              document.querySelector("video").style[key] = `${value}px`;
+              document.querySelector("img").style[key] = `${value}px`;
+            }
+            if (["format"].indexOf(key) > -1) {
+              if (value === "gif") {
+                document.querySelector("video").style.display = "none";
+                document.querySelector("img").style.display = "initial";
+              } else {
+                document.querySelector("img").style.display = "none";
+                document.querySelector("video").style.display = "initial";
+              }
+            }
+          })
+        );
       const ipcRenderer = require("electron").ipcRenderer;
       document.querySelector("#capture").onclick = async (e) => {
         if (wait) return;
@@ -89,12 +128,16 @@
           ...dftConfig,
           ...config,
         });
-        const video = document.querySelector("video");
         const blob = new Blob([buffer]);
         const dataUrl = URL.createObjectURL(blob);
-        video.src = dataUrl;
-        video.play();
-
+        if (config.format === "mp4") {
+          const video = document.querySelector("video");
+          video.src = dataUrl;
+          video.play();
+        } else {
+          const img = document.querySelector("img");
+          img.src = dataUrl;
+        }
         e.target.innerText = "Capture";
         wait = false;
       };
